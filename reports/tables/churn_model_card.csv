@@ -1,0 +1,11 @@
+,value
+chosen_model,logistic_regression
+label,no order in next 365 days
+train_cutoff,2010-12-09
+train_customers,4212
+train_churn_rate,0.3658594491927825
+cv_roc_auc,0.7851021292217149
+cv_brier,0.17967799507704915
+scored_customers,4250
+scoring_population,customers with >=1 order in the 365 days to snapshot
+mean_score_now,0.3345686214875831

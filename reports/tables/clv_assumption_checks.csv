@@ -1,0 +1,4 @@
+check,value,guidance
+"Gamma-Gamma independence: Pearson corr(frequency, monetary_value)",0.1425,|r| < 0.3 is usually treated as acceptable
+"Gamma-Gamma independence: Spearman corr(frequency, monetary_value)",0.2487,rank-based; robust to the very long spend tail
+Share of customers with zero repeat purchases,0.2855,these receive population-average spend

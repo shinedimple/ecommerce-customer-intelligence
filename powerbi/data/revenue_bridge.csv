@@ -1,0 +1,9 @@
+step,amount_gbp
+"1. Cleaned ledger, all lines (net of cancellations)",18855533.7
+2. Remove bad-debt write-offs (A-invoices),147614.08
+"3. Remove non-merchandise (postage, fees, manual, discounts, vouchers)",-75748.71
+"4. = Net merchandise revenue, all buyers",18927399.07
+5. Remove guest / unidentified buyers,-2568806.36
+6. Remove product sales reversed via manual credit (rule R5b),-39105.5
+"7. = Net merchandise revenue, identified customers (analytics base)",16319487.21
+Check: step 4 + 5 + 6 - step 7 (must be 0),-0.0

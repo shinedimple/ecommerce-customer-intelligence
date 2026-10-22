@@ -1,0 +1,5 @@
+cadence_status,customers,revenue_t12m,pct_t12m_revenue
+On track,2300,6394797.0,0.8062
+Slipping,390,624395.0,0.0787
+Insufficient history,2564,593897.0,0.0749
+Lapsed,585,319224.0,0.0402

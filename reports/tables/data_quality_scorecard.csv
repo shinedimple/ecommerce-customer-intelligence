@@ -1,0 +1,13 @@
+dimension,issue,rows_affected,rows_base,revenue_affected_gbp,treatment,pct_rows,pct_of_gross_sales
+Completeness,Missing Customer ID (all lines),235151,1033036,3090394.12,Cannot attribute to a customer. Excluded from RFM/CLV/churn; kept in company totals.,0.2276,0.151
+Completeness,Missing Description,4382,1067371,0.0,All are zero-price stock adjustments; no revenue impact.,0.0041,0.0
+Uniqueness,Invoices duplicated across the two sheets (1–9 Dec 2010),22523,1067371,377488.45,Removed (R1). Otherwise these invoices are counted twice.,0.0211,0.0184
+Uniqueness,Exact duplicate lines within a sheet,11812,1067371,54228.42,Removed (R2). ASSUMPTION: system double-posts.,0.0111,0.0026
+Validity,Cancellation lines (invoice prefix 'C'),19104,1033036,-1462050.61,Kept as negative revenue. Matched reversals flagged (R5/R5b).,0.0185,-0.0714
+Validity,Cancellations matched to the exact sale they reverse,6100,1033036,652006.6299999999,Pairs excluded from order counts; revenue nets to zero either way.,0.0059,0.0319
+Validity,Bad-debt write-off adjustments (prefix 'A'),6,1033036,-147614.08,Finance item; excluded from customer analytics.,0.0,-0.0072
+Validity,"Negative-quantity stock adjustments (damaged/lost, price 0)",3393,1033036,0.0,"Inventory events, not sales. Excluded.",0.0033,0.0
+Validity,Zero-price lines with positive quantity,2621,1033036,0.0,Free/sample items or keying errors. Excluded from revenue metrics.,0.0025,0.0
+Consistency,"Non-merchandise stock codes (postage, fees, manual, discount…)",5801,1033036,75748.71100000002,Kept for finance reconciliation; excluded from product & customer metrics.,0.0056,0.0037
+Consistency,Customers recorded in >1 country,13,5942,0.0,Assigned modal country (R7).,0.0022,0.0
+Timeliness,Partial final month (Dec 2011 ends on the 9th),25247,1033036,637808.33,Excluded from month-on-month trend charts; included in customer histories.,0.0244,0.0312

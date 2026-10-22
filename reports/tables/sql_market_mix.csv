@@ -1,0 +1,5 @@
+region,customers,net_revenue,pct_revenue,avg_orders,median_customer_revenue
+UK,5326,13623252.0,0.8347,6.22,816.0
+Europe (ex-UK),452,2428884.0,0.1488,6.66,1126.0
+Rest of World,55,260160.0,0.0159,3.05,1002.0
+Unspecified,6,8597.0,0.0005,2.67,546.0

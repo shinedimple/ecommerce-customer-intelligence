@@ -1,0 +1,5 @@
+rule,description,rows_before,rows_after,rows_removed,note
+R1,Drop invoices duplicated across the two sheets (1–9 Dec 2010),1067371,1044848,22523,"22,523 lines across 1,088 invoices"
+R2,Drop exact duplicate lines within a sheet,1044848,1033036,11812,"net revenue in removed lines: £54,228"
+R5,Flag cancellations matched to the sale they reverse (not removed),1033036,1033036,0,"6,091 of 19,104 cancellation lines matched to an original sale"
+R5b,Flag manual ('M') credits that exactly reverse a product sale within 7 days,1033036,1033036,0,"9 pairs, £39,106 of sales reversed"

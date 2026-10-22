@@ -1,0 +1,146 @@
+// =====================================================================================
+// DAX measure library — E-Commerce Customer Intelligence & LTV Engine
+// -------------------------------------------------------------------------------------
+// Model: see docs/04_dashboard_spec.md for relationships.
+//   fact_orders[order_date]     -> dim_date[date_key]        (many-to-one, single)
+//   fact_orders[customer_id]    -> dim_customer[customer_id] (many-to-one, single)
+//   fact_orders[country]        -> dim_country[country]      (many-to-one, single)
+//   fact_sales_lines[stock_code]-> dim_product[stock_code]   (many-to-one, single)
+//   fact_sales_lines[invoice_date] -> dim_date[date_key]     (many-to-one, single)
+//   seg_playbook[management_segment] -> dim_customer[management_segment] (one-to-many)
+// Mark dim_date as a Date table on dim_date[date_key].
+//
+// Every measure below reproduces a SQL definition in sql/03_kpi_overview.sql.
+// VALIDATION STEP after loading: FY totals must match reports/tables/sql_kpi_fy_comparison.csv
+// (Net Merch Revenue FY2011 = 9,299,887) before the dashboard is published.
+// Create an empty table named _Measures to hold these.
+// =====================================================================================
+
+// ---------- Revenue ------------------------------------------------------------------
+Gross Merch Sales =
+CALCULATE ( SUM ( fact_orders[order_value] ), fact_orders[order_type] = "sale" )
+
+Returns Value =
+- CALCULATE ( SUM ( fact_orders[order_value] ), fact_orders[order_type] = "cancellation" )
+
+Net Merch Revenue =
+SUM ( fact_orders[order_value] )
+
+Return Rate =
+DIVIDE ( [Returns Value], [Gross Merch Sales] )
+
+Identified Sales =
+CALCULATE ( [Gross Merch Sales], fact_orders[is_identified] = TRUE () )
+
+Guest Sales =
+CALCULATE ( [Gross Merch Sales], fact_orders[is_identified] = FALSE () )
+
+Identified Share % =
+DIVIDE ( [Identified Sales], [Gross Merch Sales] )
+
+// ---------- Volume & basket ----------------------------------------------------------
+Orders =
+CALCULATE ( COUNTROWS ( fact_orders ), fact_orders[order_type] = "sale" )
+
+Active Customers =
+CALCULATE (
+    DISTINCTCOUNT ( fact_orders[customer_id] ),
+    fact_orders[order_type] = "sale",
+    fact_orders[is_identified] = TRUE ()
+)
+
+AOV =
+DIVIDE ( [Gross Merch Sales], [Orders] )
+
+Orders per Customer =
+DIVIDE (
+    CALCULATE ( [Orders], fact_orders[is_identified] = TRUE () ),
+    [Active Customers]
+)
+
+// ---------- Time intelligence (FY = Dec–Nov; use dim_date[fiscal_year]) ---------------
+Net Merch Revenue PY =
+CALCULATE ( [Net Merch Revenue], DATEADD ( dim_date[date_key], -12, MONTH ) )
+
+Net Merch Revenue YoY % =
+DIVIDE ( [Net Merch Revenue] - [Net Merch Revenue PY], [Net Merch Revenue PY] )
+
+Net Merch Revenue (complete months) =
+CALCULATE ( [Net Merch Revenue], dim_date[is_partial_month] = FALSE () )
+
+// ---------- Customer acquisition -----------------------------------------------------
+New Customers =
+VAR _minDate = MIN ( dim_date[date_key] )
+VAR _maxDate = MAX ( dim_date[date_key] )
+RETURN
+    CALCULATE (
+        COUNTROWS ( dim_customer ),
+        FILTER (
+            ALL ( dim_customer ),
+            DATEVALUE ( dim_customer[first_order_ts] ) >= _minDate
+                && DATEVALUE ( dim_customer[first_order_ts] ) <= _maxDate
+        )
+    )
+
+Returning Customers =
+[Active Customers] - [New Customers]
+
+// ---------- Customer value & risk (scores are pre-computed; DAX only aggregates) ------
+Customers =
+COUNTROWS ( dim_customer )
+
+Revenue T12M =
+SUM ( dim_customer[revenue_t12m] )
+
+Revenue at Risk =
+SUM ( dim_customer[revenue_at_risk] )
+
+Revenue at Risk % =
+DIVIDE ( [Revenue at Risk], [Revenue T12M] )
+
+Predicted CLV 12M =
+SUM ( dim_customer[clv_12m] )
+
+Avg Churn Probability =
+AVERAGE ( dim_customer[churn_prob_12m] )     // blank for customers lapsed > 12m (by design)
+
+Flagged At-Risk Accounts =
+CALCULATE ( COUNTROWS ( dim_customer ), dim_customer[at_risk_flag] = TRUE () )
+
+Flagged Exposure T12M =
+CALCULATE ( [Revenue T12M], dim_customer[at_risk_flag] = TRUE () )
+
+Rescue Segment Exposure =
+CALCULATE (
+    [Revenue T12M],
+    dim_customer[management_segment] = "2. Rescue - High Value at Risk"
+)
+
+// ---------- Retention scenario (what-if parameter) -----------------------------------
+// Create with Modeling > New parameter > Numeric range:
+//   name "Save Rate", 0 to 0.5, increment 0.05, default 0.2  -> generates 'Save Rate'[Save Rate Value]
+// Gross margin is NOT in the data: create a second parameter "Gross Margin" (0.2 to 0.6,
+// default 0.4) and label it on the page as an ASSUMPTION to be replaced by Finance.
+Recovered Revenue (scenario) =
+[Revenue at Risk] * SELECTEDVALUE ( 'Save Rate'[Save Rate Value], 0.2 )
+
+Recovered Gross Profit (scenario) =
+[Recovered Revenue (scenario)] * SELECTEDVALUE ( 'Gross Margin'[Gross Margin Value], 0.4 )
+
+// ---------- Concentration ------------------------------------------------------------
+Top 10 Customers Revenue Share =
+VAR _top =
+    TOPN ( 10, ALL ( dim_customer ), dim_customer[lifetime_net_revenue], DESC )
+RETURN
+    DIVIDE (
+        SUMX ( _top, dim_customer[lifetime_net_revenue] ),
+        CALCULATE ( SUM ( dim_customer[lifetime_net_revenue] ), ALL ( dim_customer ) )
+    )
+
+// ---------- Presentation helpers ----------------------------------------------------
+Data As-Of Label =
+"Data to 9 Dec 2011 · Dec-2011 is a partial month · Customer metrics cover identified customers only (~85% of revenue)"
+
+Revenue at Risk Title =
+"Revenue at risk: " & FORMAT ( [Revenue at Risk], "£#,0" ) & " ("
+    & FORMAT ( [Revenue at Risk %], "0.0%" ) & " of trailing-12m revenue)"

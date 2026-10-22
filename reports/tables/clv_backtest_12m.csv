@@ -1,0 +1,10 @@
+,value
+calibration_window,2009-12-01 to 2010-12-09 (12 months)
+customers,4274
+pred_purchases,18458.042171173198
+actual_purchases,12125.0
+pred_revenue,8693250.293813016
+actual_revenue,6492779.442
+revenue_error_pct,0.3389104576044548
+bgnbd_b_param,88.27634179269874
+spearman_rev,0.5812030968834303
